@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0">
+
+<title>เกมกลุ่มชายสี่ ป6/5 อนุบาลชลบุรี</title>
+
+<style>
+
+html,body{
+margin:0;
+padding:0;
+height:100%;
+font-family:sans-serif;
+background:url("desert.jpg");
+background-size:cover;
+overflow:hidden;
+}
+
+#top{
+height:8vh;
+background:#c2b280;
+display:flex;
+justify-content:space-around;
+align-items:center;
+font-weight:bold;
+}
+
+#game{
+height:92vh;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+padding:10px;
+box-sizing:border-box;
+}
+
+.card{
+background:#deb887;
+border-radius:12px;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:40px;
+user-select:none;
+}
+
+.open{
+background:white;
+}
+
+#overlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.6);
+display:none;
+justify-content:center;
+align-items:center;
+animation:fadein .5s;
+}
+
+#overlay img{
+width:60%;
+animation:fadein .5s;
+}
+
+@keyframes fadein{
+from{opacity:0}
+to{opacity:1}
+}
+
+@keyframes fadeout{
+from{opacity:1}
+to{opacity:0}
+}
+
+#flash{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:white;
+opacity:0;
+pointer-events:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="flash"></div>
+
+<div id="top">
+❤️ <span id="life">6</span>
+ด่าน <span id="level">1</span>
+</div>
+
+<div id="game"></div>
+
+<div id="overlay">
+<img id="overlayImg">
+</div>
+
+<script>
+
+const notes=["𝅝","𝅗𝅥","♩","♪"];
+let life=6;
+let level=1;
+let first=null;
+let lock=false;
+let match=0;
+
+const wrong=new Audio("wrong.mp3");
+const win=new Audio("win.mp3");
+const flash=new Audio("flashbang.mp3");
+
+function fadeSound(s){
+let v=1;
+s.volume=1;
+s.play();
+let f=setInterval(()=>{
+v-=0.05;
+s.volume=v;
+if(v<=0){
+clearInterval(f);
+s.pause();
+}
+},80);
+}
+
+function show(img,victory=false){
+overlay.style.display="flex";
+overlayImg.src=img;
+
+if(victory){
+flash.play();
+document.getElementById("flash").style.opacity=1;
+setTimeout(()=>flash.style.opacity=0,300);
+}
+
+setTimeout(()=>{
+overlay.style.animation="fadeout .5s";
+setTimeout(()=>{
+overlay.style.display="none";
+overlay.style.animation="";
+},500);
+},1500);
+}
+
+function build(){
+game.innerHTML="";
+first=null;
+match=0;
+
+let arr=[];
+notes.forEach(n=>{arr.push(n,n)});
+arr.sort(()=>Math.random()-.5);
+
+arr.forEach(n=>{
+let c=document.createElement("div");
+c.className="card";
+
+c.onclick=()=>{
+if(lock||c.classList.contains("open"))return;
+
+c.classList.add("open");
+c.innerText=n;
+
+if(!first){first=c;return;}
+
+lock=true;
+
+if(first.innerText==n){
+match++;
+first=null;
+setTimeout(()=>{
+lock=false;
+if(match==notes.length){
+level++;
+win.play();
+show("victory.png",true);
+setTimeout(build,2500);
+}
+},1200);
+
+}else{
+fadeSound(wrong);
+show("wrong.png");
+life--;
+lifeSpan.innerText=life;
+
+setTimeout(()=>{
+first.classList.remove("open");
+c.classList.remove("open");
+first=null;
+lock=false;
+if(life<=0){
+show("lose.png");
+setTimeout(()=>location.reload(),2500);
+}
+},1500);
+}
+};
+
+game.appendChild(c);
+});
+}
+
+const game=document.getElementById("game");
+const overlay=document.getElementById("overlay");
+const overlayImg=document.getElementById("overlayImg");
+const lifeSpan=document.getElementById("life");
+
+build();
+
+</script>
+
+</body>
+</html>
