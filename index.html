@@ -1,183 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>เกมกลุ่มชายสี่ ป6/5 อนุบาลชลบุรี</title>
+
+<style>
+
+body{
+margin:0;
+background:url("sand.jpg");
+background-size:cover;
+font-family:sans-serif;
+overflow:hidden;
+}
+
+#hud{
+color:white;
+padding:10px;
+text-align:center;
+}
+
+#game{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+padding:10px;
+height:80vh;
+}
+
+.card{
+background:#c2a15a;
+border-radius:12px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:40px;
+cursor:pointer;
+}
+
+.open{
+background:white;
+}
+
+#overlay{
+position:fixed;
+inset:0;
+display:none;
+align-items:center;
+justify-content:center;
+background:rgba(0,0,0,.5);
+}
+
+#overlay.show{animation:fade .6s;}
+
+@keyframes fade{
+from{opacity:0}to{opacity:1}
+}
+
+#overlay img{
+width:60%;
+}
+
+#flash{
+position:fixed;
+inset:0;
+background:white;
+opacity:0;
+pointer-events:none;
+transition:.3s;
+}
+
+#aura{text-align:center;}
+
+</style>
+</head>
+
+<body>
+
+<div id="splash"></div>
+<div id="flash"></div>
+
+<div id="hud">
+❤️ <span id="life">6</span>
+ | Lv <span id="level">1</span>
+
+<select id="mode">
+<option value="easy">Easy</option>
+<option value="normal">Normal</option>
+<option value="hard">Hard</option>
+<option value="extreme">Extreme</option>
+</select>
+
+<div id="aura"></div>
+</div>
+
+<div id="game"></div>
+
+<div id="overlay">
+<img id="overlayImg">
+</div>
+
 <script>
+<div id="splash"></div>
+<div id="flash"></div>
 
-// splash
-setTimeout(()=>splash.style.display="none",1500);
+<div id="hud">
+❤️ <span id="life">6</span>
+ | Lv <span id="level">1</span>
 
-// ===== sounds =====
-const correctSound=new Audio("correct.mp3");
-const wrongSound=new Audio("wrong.mp3");
-const winSound=new Audio("win.mp3");
-const loseSound=new Audio("lose.mp3");
-const flashSound=new Audio("flashbang.mp3");
+<select id="mode">
+<option value="easy">Easy</option>
+<option value="normal">Normal</option>
+<option value="hard">Hard</option>
+<option value="extreme">Extreme</option>
+</select>
 
-const sounds=[correctSound,wrongSound,winSound,loseSound,flashSound];
+<div id="aura"></div>
+</div>
 
-function fadeOut(s){
-let i=setInterval(()=>{
-s.volume-=0.1;
-if(s.volume<=0){
-s.pause();
-clearInterval(i);
-}
-},80);
-}
+<div id="game"></div>
 
-function playThenFade(s){
-sounds.forEach(x=>{x.pause();x.currentTime=0});
-s.volume=1;
-s.play();
-setTimeout(()=>fadeOut(s),800);
-}
+<div id="overlay">
+<img id="overlayImg">
+</div>/* SCRIPT ที่ผมให้คุณล่าสุด วางตรงนี้ */
+</script>
 
-// ===== symbols =====
-const notes=["𝅝","𝅗𝅥","♩","♪","𝄻","𝄼","𝄽","𝄾"];
-
-const modes={easy:3,normal:4,hard:6,extreme:8};
-
-let life=6,level=1,first=null,lock=true,match=0;
-
-function vibrate(){navigator.vibrate?.(200);}
-
-// ===== popup =====
-function show(img,victory=false){
-
-lock=true;
-overlayImg.src=img;
-overlay.style.display="flex";
-setTimeout(()=>overlay.classList.add("show"),10);
-
-if(victory){
-flash.style.opacity=1;
-flashSound.volume=1;
-flashSound.play();
-setTimeout(()=>flash.style.opacity=0,300);
-}
-
-setTimeout(()=>overlay.classList.remove("show"),1400);
-
-setTimeout(()=>{
-overlay.style.display="none";
-lock=false;
-},1800);
-}
-
-// ===== aura =====
-function auraPlus(){
-aura.innerText="✨ aura+";
-life++;
-lifeSpan.innerText=life;
-}
-
-function auraMinus(){
-aura.innerText="💀 aura-";
-life-=2;
-if(life<0)life=0;
-lifeSpan.innerText=life;
-}
-
-// ===== game =====
-function startGame(){
-life=6;
-level=1;
-build();
-}
-
-function build(){
-
-lock=true;
-sounds.forEach(x=>{x.pause();x.currentTime=0});
-
-lifeSpan.innerText=life;
-levelSpan.innerText=level;
-game.innerHTML="";
-first=null;
-match=0;
-aura.innerText="";
-
-let p=modes[mode.value];
-let arr=[];
-
-for(let i=0;i<p;i++)arr.push(notes[i],notes[i]);
-arr.sort(()=>Math.random()-0.5);
-
-arr.forEach(n=>{
-let c=document.createElement("div");
-c.className="card";
-
-c.onclick=()=>{
-
-if(lock||c.classList.contains("open"))return;
-
-c.classList.add("open");
-c.innerText=n;
-
-if(!first){first=c;return;}
-
-lock=true;
-
-if(first.innerText===n){
-
-playThenFade(correctSound);
-show("win.png");
-auraPlus();
-match++;
-first=null;
-
-setTimeout(()=>{
-if(match===p){
- if(mode.value==="extreme"){
-  playThenFade(winSound);
-  show("victory.png",true);
- }else{
-  level++;
-  playThenFade(winSound);
-  build();
- }
-}else lock=false;
-},1800);
-
-}else{
-
-playThenFade(wrongSound);
-show("wrong.png");
-vibrate();
-auraMinus();
-
-setTimeout(()=>{
-first.classList.remove("open");
-c.classList.remove("open");
-first.innerText="";
-c.innerText="";
-first=null;
-
-if(life<=0){
- playThenFade(loseSound);
- show("lose.png");
-}else lock=false;
-
-},1800);
-
-}
-
-};
-
-game.appendChild(c);
-});
-
-setTimeout(()=>lock=false,500);
-}
-
-// ===== elements =====
-const game=document.getElementById("game");
-const overlay=document.getElementById("overlay");
-const overlayImg=document.getElementById("overlayImg");
-const aura=document.getElementById("aura");
-const lifeSpan=document.getElementById("life");
-const levelSpan=document.getElementById("level");
-const mode=document.getElementById("mode");
-const splash=document.getElementById("splash");
-const flash=document.getElementById("flash");
-
-startGame();
-
- </script>
+</body>
+</html>
