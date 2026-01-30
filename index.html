@@ -1,124 +1,8 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>เกมกลุ่มชายสี่ ป6/5 อนุบาลชลบุรี</title>
-
-<style>
-
-body{
-margin:0;
-background:#1b3b2f;
-color:#f5e6b8;
-font-family:sans-serif;
-text-align:center;
-}
-
-#splash{
-position:fixed;
-inset:0;
-background:black;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:26px;
-z-index:99;
-}
-
-#top{
-display:flex;
-justify-content:space-around;
-margin-top:8px;
-}
-
-select,button{
-background:#6b4f2a;
-color:#fff3c4;
-border:none;
-border-radius:8px;
-padding:6px 12px;
-}
-
-#game{
-margin-top:10px;
-display:grid;
-grid-template-columns:repeat(4,80px);
-gap:10px;
-justify-content:center;
-}
-
-.card{
-width:80px;
-height:80px;
-background:#2f4f3a;
-border:2px solid #bfa76f;
-border-radius:12px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:34px;
-cursor:pointer;
-}
-
-.open{background:#bfa76f;color:black}
-
-#overlay{
-position:fixed;
-inset:0;
-display:none;
-align-items:center;
-justify-content:center;
-background:rgba(0,0,0,.6);
-z-index:50;
-}
-
-#overlay img{width:200px}
-
-#flash{
-position:fixed;
-inset:0;
-background:white;
-opacity:0;
-pointer-events:none;
-z-index:60;
-}
-
-#aura{color:#7cff7c;margin-top:6px}
-
-</style>
-</head>
-
-<body>
-
-<div id="splash">🌿 เกมกลุ่มชายสี่ ป6/5<br>อนุบาลชลบุรี</div>
-<div id="flash"></div>
-<div id="overlay"><img id="overlayImg"></div>
-
-<h3>🎵 เกมกลุ่มชายสี่ ป6/5 อนุบาลชลบุรี</h3>
-
-<div id="top">
-❤️ <span id="life">6</span>
-ด่าน <span id="level">1</span>
-
-<select id="mode" onchange="startGame()">
-<option value="easy">ง่าย</option>
-<option value="normal">ปกติ</option>
-<option value="hard">ยาก</option>
-<option value="extreme">โหด</option>
-</select>
-
-<button onclick="document.documentElement.requestFullscreen()">เต็มจอ</button>
-</div>
-
-<div id="aura"></div>
-<div id="game"></div>
-
 <script>
 
 setTimeout(()=>splash.style.display="none",1500);
 
-// sounds
+// ===== sounds =====
 const correctSound=new Audio("correct.mp3");
 const wrongSound=new Audio("wrong.mp3");
 const winSound=new Audio("win.mp3");
@@ -127,47 +11,73 @@ const flashSound=new Audio("flashbang.mp3");
 
 const sounds=[correctSound,wrongSound,winSound,loseSound,flashSound];
 
-function play(s){
-sounds.forEach(x=>{x.pause();x.currentTime=0});
-s.play();
+function fadeOut(s){
+let i=setInterval(()=>{
+s.volume-=0.1;
+if(s.volume<=0){
+s.pause();
+clearInterval(i);
+}
+},80);
 }
 
-// symbols
-const notes=[
-"𝅝","𝅗𝅥","♩","♪",
-"𝄻","𝄼","𝄽","𝄾"
-];
+function playThenFade(s){
+sounds.forEach(x=>{x.pause();x.currentTime=0});
+s.volume=1;
+s.play();
+setTimeout(()=>fadeOut(s),700);
+}
+
+// ===== symbols =====
+const notes=["𝅝","𝅗𝅥","♩","♪","𝄻","𝄼","𝄽","𝄾"];
 
 const modes={easy:3,normal:4,hard:6,extreme:8};
 
 let life=6,level=1,first=null,lock=true,match=0;
 
+// ===== mobile =====
 function vibrate(){navigator.vibrate?.(200);}
 
-function flashbang(){
-play(flashSound);
-flash.style.opacity=1;
-setTimeout(()=>flash.style.opacity=0,120);
-}
+// ===== popup =====
+function show(img,victory=false){
 
-function show(img){
 lock=true;
 overlayImg.src=img;
 overlay.style.display="flex";
-flashbang();
+setTimeout(()=>overlay.classList.add("show"),10);
+
+if(victory){
+flash.style.opacity=1;
+flashSound.play();
+setTimeout(()=>flash.style.opacity=0,300);
+}
+
+setTimeout(()=>overlay.classList.remove("show"),1200);
+
 setTimeout(()=>{
 overlay.style.display="none";
 lock=false;
-},700);
+},1600);
 }
 
-function auraRNG(){
-const a=["🔥 ไฟ","🌿 ธรรมชาติ","⚡ พายุ","💎 โบราณ","👑 ตำนาน"];
-aura.innerText="ได้ออร่า: "+a[Math.floor(Math.random()*a.length)];
+// ===== aura system =====
+function auraPlus(){
+aura.innerText="✨ aura+";
+life++;
+lifeSpan.innerText=life;
 }
 
+function auraMinus(){
+aura.innerText="💀 aura-";
+life-=2;
+if(life<0)life=0;
+lifeSpan.innerText=life;
+}
+
+// ===== game =====
 function startGame(){
-life=6;level=1;
+life=6;
+level=1;
 build();
 }
 
@@ -181,6 +91,7 @@ levelSpan.innerText=level;
 game.innerHTML="";
 first=null;
 match=0;
+aura.innerText="";
 
 let p=modes[mode.value];
 let arr=[];
@@ -205,32 +116,31 @@ lock=true;
 
 if(first.innerText===n){
 
-play(correctSound);
+playThenFade(correctSound);
 show("win.png");
-auraRNG();
+auraPlus();
 match++;
 first=null;
 
 setTimeout(()=>{
 if(match===p){
  if(mode.value==="extreme"){
-  play(winSound);
-  show("victory.png");
+  playThenFade(winSound);
+  show("victory.png",true);
  }else{
   level++;
-  play(winSound);
+  playThenFade(winSound);
   build();
  }
 }else lock=false;
-},600);
+},1600);
 
 }else{
 
-play(wrongSound);
+playThenFade(wrongSound);
 show("wrong.png");
 vibrate();
-life--;
-lifeSpan.innerText=life;
+auraMinus();
 
 setTimeout(()=>{
 first.classList.remove("open");
@@ -240,11 +150,11 @@ c.innerText="";
 first=null;
 
 if(life<=0){
- play(loseSound);
+ playThenFade(loseSound);
  show("lose.png");
 }else lock=false;
 
-},600);
+},1600);
 
 }
 
@@ -253,10 +163,10 @@ if(life<=0){
 game.appendChild(c);
 });
 
-setTimeout(()=>lock=false,300);
+setTimeout(()=>lock=false,400);
 }
 
-// elements
+// ===== elements =====
 const game=document.getElementById("game");
 const overlay=document.getElementById("overlay");
 const overlayImg=document.getElementById("overlayImg");
@@ -269,7 +179,4 @@ const flash=document.getElementById("flash");
 
 startGame();
 
-</script>
-
-</body>
-  </html>
+ </script>
