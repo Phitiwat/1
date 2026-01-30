@@ -1,5 +1,6 @@
 <script>
 
+// splash
 setTimeout(()=>splash.style.display="none",1500);
 
 // ===== sounds =====
@@ -25,7 +26,7 @@ function playThenFade(s){
 sounds.forEach(x=>{x.pause();x.currentTime=0});
 s.volume=1;
 s.play();
-setTimeout(()=>fadeOut(s),700);
+setTimeout(()=>fadeOut(s),800);
 }
 
 // ===== symbols =====
@@ -35,7 +36,6 @@ const modes={easy:3,normal:4,hard:6,extreme:8};
 
 let life=6,level=1,first=null,lock=true,match=0;
 
-// ===== mobile =====
 function vibrate(){navigator.vibrate?.(200);}
 
 // ===== popup =====
@@ -48,19 +48,20 @@ setTimeout(()=>overlay.classList.add("show"),10);
 
 if(victory){
 flash.style.opacity=1;
+flashSound.volume=1;
 flashSound.play();
 setTimeout(()=>flash.style.opacity=0,300);
 }
 
-setTimeout(()=>overlay.classList.remove("show"),1200);
+setTimeout(()=>overlay.classList.remove("show"),1400);
 
 setTimeout(()=>{
 overlay.style.display="none";
 lock=false;
-},1600);
+},1800);
 }
 
-// ===== aura system =====
+// ===== aura =====
 function auraPlus(){
 aura.innerText="✨ aura+";
 life++;
@@ -133,7 +134,7 @@ if(match===p){
   build();
  }
 }else lock=false;
-},1600);
+},1800);
 
 }else{
 
@@ -154,7 +155,7 @@ if(life<=0){
  show("lose.png");
 }else lock=false;
 
-},1600);
+},1800);
 
 }
 
@@ -163,7 +164,7 @@ if(life<=0){
 game.appendChild(c);
 });
 
-setTimeout(()=>lock=false,400);
+setTimeout(()=>lock=false,500);
 }
 
 // ===== elements =====
